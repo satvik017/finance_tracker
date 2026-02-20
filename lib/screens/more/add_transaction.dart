@@ -20,6 +20,13 @@ class _AddTransactionState extends State<AddTransaction> {
 
   String? selectedPaymentType;
   Map<String,dynamic> creditDetails={};
+  Map<String,int> creditType={
+    "Bill":0,
+    "Swiggy/zomato": 1,
+    "Airtel": 2,
+    "Others": 3,
+  };
+  String? creditTypeName;
   bool _isLoading=false;
 
   /// Different dropdown values
@@ -112,12 +119,89 @@ class _AddTransactionState extends State<AddTransaction> {
     });
   }
 
-  void _submit() {
+  void showLoading(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+  }
+
+  void hideLoading(BuildContext context) {
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  void _submit() async{
     if (_formKey.currentState!.validate() &&
         selectedPaymentType != null) {
+      showLoading(context);
+      if(selectedPaymentType == "credit"){
+        var params={};
+        if(creditCardOptions!=null && creditCardOptions?.trim().toLowerCase() == "axis"){
+          params = {
+            "action": "creditSpend",
+            "amount": amountController.text,
+            "which": creditCardOptions,
+            "where": nameController.text,
+            "cashback": creditType[creditTypeName]??0,
+          };
+        }
+        else{
+          params={
+            "action": "creditSpend",
+            "amount": amountController.text,
+            "which": creditCardOptions,
+            "where": nameController.text,
+            "cashback": creditType[creditTypeName]??0,
+          };
+        }
+        debugPrint(params.toString());
+        try {
+          var res = await _apiService.postJson(
+            body: params,
+          );
+          debugPrint(res.toString());
+        }
+        catch(e){
+          debugPrint(e.toString());
+        }
+      }
+      else{
+        try{
+        var res = await _apiService.postJson(
+          body: {"action": "spendEntryByAi",
+          "amount": amountController.text,
+            "where": nameController.text
+          },
+        );
+        debugPrint(res.toString());
+        }
+        catch(e){
+          debugPrint(e.toString());
+        }
+        try{
+        var res = await _apiService.postJson(
+          body: {"action": "updateMoney",
+            "amount": "-${amountController.text}",
+            "which": bankOptions,
+            "where": "bank"
+          },
+        );
+        debugPrint(res.toString());
+        }
+        catch(e){
+          debugPrint(e.toString());
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Form Submitted Successfully")),
+        const SnackBar(content: Text("Form Submitted Successfully",style: TextStyle(color: Colors.white),), backgroundColor: Colors.green,),
       );
+      hideLoading(context);
+      _reset();
     } else if (selectedPaymentType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select payment type")),
@@ -130,7 +214,9 @@ class _AddTransactionState extends State<AddTransaction> {
     nameController.clear();
     emailController.clear();
     amountController.clear();
-
+    creditCardOptions = null;
+    bankOptions = null;
+    creditTypeName = null;
     setState(() {
       selectedPaymentType = null;
     });
@@ -252,20 +338,33 @@ class _AddTransactionState extends State<AddTransaction> {
 
                       const SizedBox(height: 16),
 
-                      /// 🔹 Email
-                      TextFormField(
-                        controller: emailController,
+                      //credit Type
+                      if(creditCardOptions != null && creditCardOptions?.trim().toLowerCase() == "axis")
+                      DropdownButtonFormField<String>(
+                        value: creditTypeName,
                         decoration: const InputDecoration(
-                          labelText: "Email",
+                          labelText: "Select Category",
                           border: OutlineInputBorder(),
                         ),
-                        keyboardType: TextInputType.emailAddress,
+                        items: creditType.keys
+                            .map((item) =>
+                            DropdownMenuItem(
+                              value: item,
+                              child: Text(
+                                  item),
+                            ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            creditTypeName = value;
+                          });
+                        },
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Email is required";
+                          if (creditTypeName == null) {
+                            return "Select payment category";
                           }
-                          if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                            return "Enter valid email";
+                          if (value == null) {
+                            return "Please payment category";
                           }
                           return null;
                         },

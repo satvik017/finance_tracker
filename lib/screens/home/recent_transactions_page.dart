@@ -25,6 +25,14 @@ class _RecentTransactionsPageState extends State<RecentTransactionsPage> {
     super.dispose();
   }
 
+  Future<void> _refreshTransactions() async {
+    setState(() {
+      _future = _fetchTransactions();
+    });
+
+    await _future;
+  }
+
   Future<List<Map<String, dynamic>>> _fetchTransactions() async {
     final dynamic data = await _apiService.getJson(query: {"action": "history"});
     final List<dynamic> list = _extractList(data);
@@ -86,44 +94,59 @@ class _RecentTransactionsPageState extends State<RecentTransactionsPage> {
           return const Center(child: Text('No recent transactions found.'));
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(20),
-          itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            final title = _stringFromKeys(
-              item,
-              ['title', 'name', 'description', 'transaction'],
-            );
-            final amount = _stringFromKeys(
-              item,
-              ['amount', 'value', 'total', 'price'],
-            );
-            final date = _stringFromKeys(
-              item,
-              ['date', 'createdAt', 'time'],
-            );
+        return RefreshIndicator(
+          onRefresh: _refreshTransactions,
+          child: ListView.separated(
+            padding: const EdgeInsets.all(20),
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              final title = _stringFromKeys(
+                item,
+                ['action'],
+              );
+              final amount = _stringFromKeys(
+                item,
+                ['balance'],
+              );
+              final bank = _stringFromKeys(
+                item,
+                ['which'],
+              );
 
-            return Card(
-              elevation: 1,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFE0F2F1),
-                  child: Icon(Icons.swap_horiz, color: Color(0xFF0F766E)),
+              final where = _stringFromKeys(
+                item,
+                ['where'],
+              );
+
+              return Card(
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                title: Text(title),
-                subtitle: Text('Date: $date'),
-                trailing: Text(
-                  amount,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFE0F2F1),
+                    child: Icon(Icons.swap_horiz, color: Color(0xFF0F766E)),
+                  ),
+                  title: Text(title),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("( ${bank} )"),
+                      Text('Where: $where'),
+                    ],
+                  ),
+                  trailing: Text(
+                    amount,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );
