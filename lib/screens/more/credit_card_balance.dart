@@ -108,9 +108,13 @@ class _CreditCardBalanceState extends State<CreditCardBalance> {
                 final item = keys[index];
                 final title = item;
                 final amount = _stringFromKeys(items[item], [
-                  'Available',
-                  'UnBilled',
+                  'Available'
+                ]);
+                final billed = _stringFromKeys(items[item], [
                   'Billed'
+                ]);
+                final unbilled = _stringFromKeys(items[item], [
+                  'UnBilled',
                 ]);
 
                 return Card(
@@ -147,7 +151,7 @@ class _CreditCardBalanceState extends State<CreditCardBalance> {
                               style: const TextStyle(fontWeight: FontWeight.w800,color: Color(0xFF0F766E)),
                             ),
                             Text(
-                              amount,
+                              unbilled,
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ],
@@ -160,7 +164,7 @@ class _CreditCardBalanceState extends State<CreditCardBalance> {
                               style: const TextStyle(fontWeight: FontWeight.w800,color: Color(0xFF0F766E)),
                             ),
                             Text(
-                              amount,
+                              billed,
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ],

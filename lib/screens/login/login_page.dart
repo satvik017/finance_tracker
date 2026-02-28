@@ -35,9 +35,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _login() {
-    final name = _nameController.text.trim();
+    final name = "Satvik";
     final email = _emailController.text.trim();
-    final phone = _phoneController.text.trim();
+    final phone = "+91 8077727897";
     final password = _passwordController.text;
 
     if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
@@ -123,23 +123,10 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 22),
                           InputField(
-                            controller: _nameController,
-                            label: 'Full Name',
-                            icon: Icons.person_outline,
-                          ),
-                          const SizedBox(height: 14),
-                          InputField(
                             controller: _emailController,
                             label: 'Email',
                             icon: Icons.mail_outline,
                             keyboardType: TextInputType.emailAddress,
-                          ),
-                          const SizedBox(height: 14),
-                          InputField(
-                            controller: _phoneController,
-                            label: 'Phone Number',
-                            icon: Icons.phone_outlined,
-                            keyboardType: TextInputType.phone,
                           ),
                           const SizedBox(height: 14),
                           InputField(
