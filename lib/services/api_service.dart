@@ -14,6 +14,7 @@ class ApiService {
     Map<String, String>? query,
     Map<String, String>? headers,
   }) async {
+    print(query.toString());
     final uri = Uri.parse(baseUrl).replace(queryParameters: query);
     final response = await _client.get(uri, headers: headers);
     return _handleResponse(response);
@@ -25,6 +26,7 @@ class ApiService {
     Object? body,
   }) async {
     final uri = Uri.parse(baseUrl).replace(queryParameters: query);
+    print(body.toString());
     final response = await _client.post(
       uri,
       headers: {

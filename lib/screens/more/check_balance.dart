@@ -63,6 +63,24 @@ class _CheckBalanceState extends State<CheckBalance> {
     return 'N/A';
   }
 
+  void showFormPopup(BuildContext context, String name) {
+    final _formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("User Form ($name)"),
+          content: BankForm(formKey: _formKey, name: name,),
+          actions: [
+          ],
+        );
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,20 +123,25 @@ class _CheckBalanceState extends State<CheckBalance> {
               'Balance',
             ]);
 
-            return Card(
-              elevation: 1,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFE0F2F1),
-                  child: Icon(Icons.account_balance_wallet, color: Color(0xFF0F766E)),
+            return GestureDetector(
+              onLongPress: (){
+                showFormPopup(context, item["Account"]??"");
+              },
+              child: Card(
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                title: Text(title),
-                trailing: Text(
-                  amount,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFE0F2F1),
+                    child: Icon(Icons.account_balance_wallet, color: Color(0xFF0F766E)),
+                  ),
+                  title: Text(title),
+                  trailing: Text(
+                    amount,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             );
@@ -126,6 +149,88 @@ class _CheckBalanceState extends State<CheckBalance> {
         );
       },
     )
+    );
+  }
+}
+
+class BankForm extends StatefulWidget {
+  const BankForm({
+    super.key,
+    required GlobalKey<FormState> formKey, required this.name
+  }) : _formKey = formKey;
+
+  final GlobalKey<FormState> _formKey;
+  final String name;
+
+  @override
+  State<BankForm> createState() => _BankFormState();
+}
+
+class _BankFormState extends State<BankForm> {
+  final TextEditingController amount = TextEditingController();
+  final TextEditingController remark = TextEditingController();
+  final ApiService _apiService = ApiService();
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: widget._formKey,
+      child: (_isLoading)?SizedBox(
+        height: 50,
+          child: const Center(child: CircularProgressIndicator())):Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            controller: amount,
+            decoration: const InputDecoration(labelText: "Amount"),
+            validator: (value) =>
+            value!.isEmpty ? "Enter Amount" : null,
+          ),
+          TextFormField(
+            controller: remark,
+            decoration: const InputDecoration(labelText: "Remark"),
+          ),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                onPressed: () async{
+                  if (widget._formKey.currentState!.validate()) {
+                    setState(() {
+                      _isLoading=true;
+                    });
+                    try{
+                      var res = await _apiService.postJson(
+                        body: {"action": "updateMoney",
+                          "amount": "${amount.text}",
+                          "which": widget.name,
+                          "where": "bank"
+                        },
+                      );
+                      debugPrint(res.toString());
+                    }
+                    catch(e){
+                      debugPrint(e.toString());
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Form Submitted Successfully",style: TextStyle(color: Colors.white),), backgroundColor: Colors.green,),
+                    );
+                    setState(() {
+                      _isLoading = false;
+                    });
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text("Submit"),
+              ),
+            ],
+          )
+        ],
+      ),
     );
   }
 }

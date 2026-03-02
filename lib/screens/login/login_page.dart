@@ -89,9 +89,17 @@ class _LoginPageState extends State<LoginPage> {
               Positioned(
                 bottom: -80,
                 left: -50,
-                child: _BlurOrb(
-                  size: 200,
-                  color: Color(0xFF5EEAD4),
+                child: GestureDetector(
+                  onTap: (){
+                    setState(() {
+                      _emailController.text = _adminEmail;
+                      _passwordController.text = _adminPassword;
+                    });
+                  },
+                  child: _BlurOrb(
+                    size: 200,
+                    color: Color(0xFF5EEAD4),
+                  ),
                 ),
               ),
               Center(
