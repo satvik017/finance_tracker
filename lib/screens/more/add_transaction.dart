@@ -13,6 +13,7 @@ class _AddTransactionState extends State<AddTransaction> {
   final ApiService _apiService = ApiService();
   Map<String, dynamic> bankDetails={};
   final _formKey = GlobalKey<FormState>();
+  bool _isSpecial = false;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -135,30 +136,42 @@ class _AddTransactionState extends State<AddTransaction> {
     Navigator.of(context, rootNavigator: true).pop();
   }
 
+  void _addTrans() async{
+    if (_formKey.currentState!.validate()) {
+      showLoading(context);
+        try{
+        var res = await _apiService.postJson(
+          body: {"action": "spendEntryByAi",
+          "amount": amountController.text,
+            "where": nameController.text
+          },
+        );
+        debugPrint(res.toString());
+        }
+        catch(e){
+          debugPrint(e.toString());
+        }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Form Submitted Successfully",style: TextStyle(color: Colors.white),), backgroundColor: Colors.green,),
+      );
+      hideLoading(context);
+      _reset();
+    }
+  }
+
   void _submit() async{
     if (_formKey.currentState!.validate() &&
         selectedPaymentType != null) {
       showLoading(context);
       if(selectedPaymentType == "credit"){
         var params={};
-        if(creditCardOptions!=null && creditCardOptions?.trim().toLowerCase() == "axis"){
-          params = {
+        params = {
             "action": "creditSpend",
             "amount": amountController.text,
             "which": creditCardOptions,
             "where": nameController.text,
-            "cashback": creditType[creditTypeName]??0,
-          };
-        }
-        else{
-          params={
-            "action": "creditSpend",
-            "amount": amountController.text,
-            "which": creditCardOptions,
-            "where": nameController.text,
-            "cashback": creditType[creditTypeName]??0,
-          };
-        }
+            "cashback": creditType[creditTypeName]??"0",
+        };
         debugPrint(params.toString());
         try {
           var res = await _apiService.postJson(
@@ -237,6 +250,8 @@ class _AddTransactionState extends State<AddTransaction> {
                     children: [
 
                       /// 🔹 Radio Buttons
+                      if(_isSpecial == false)
+                        ...[
                       Row(
                         children: [
                           Expanded(
@@ -322,7 +337,7 @@ class _AddTransactionState extends State<AddTransaction> {
                         ),
 
                       const SizedBox(height: 16),
-
+                      ],
                       /// 🔹 Name
                       TextFormField(
                         controller: nameController,
@@ -395,7 +410,15 @@ class _AddTransactionState extends State<AddTransaction> {
 
                       Row(
                         children: [
+                          if(_isSpecial)
                           Expanded(
+                            child: ElevatedButton(
+                              onPressed: _addTrans,
+                              child: const Text("Add"),
+                            ),
+                          )
+                          else
+                            Expanded(
                             child: ElevatedButton(
                               onPressed: _submit,
                               child: const Text("Submit"),
@@ -409,6 +432,20 @@ class _AddTransactionState extends State<AddTransaction> {
                             ),
                           ),
                         ],
+                      ),
+                      SizedBox(height: 18,),
+                      FilledButton(
+                        onPressed: (){
+                          setState(() {
+                            _isSpecial = !_isSpecial;
+                          });
+                        },
+                        style: FilledButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Text('Toggle Special Transaction'),
                       ),
                     ],
                   ),
