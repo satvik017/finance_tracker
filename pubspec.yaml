@@ -52,18 +52,21 @@ dev_dependencies:
 flutter_launcher_icons:
     android: true
     ios: true
-    image_path: "assets/icon/logo.jpg"
+    image_path: "assets/icon/logo.png"
 
 flutter_native_splash:
   color: "#ffffff"
-  image: assets/icon/logo.jpg
+  image: assets/icon/logo.png
 
   android: true
   ios: true
 
   android_12:
-    image: assets/icon/logo.jpg
+    image: assets/icon/logo.png
     color: "#ffffff"
+
+flutter_app_name:
+  name: "Satvik FM"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

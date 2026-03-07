@@ -177,13 +177,6 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 14),
-                          Text(
-                            'Demo credentials: admin@finance.com / Admin@123',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
-                            ),
-                          ),
                         ],
                       ),
                     ),
